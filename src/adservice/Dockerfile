@@ -1,11 +1,16 @@
-FROM sconecuratedimages/apps:8-jdk-alpine
+# original base image:
+#FROM openjdk:8-slim as builder
+
+#FROM openjdk:15-alpine
+
+FROM sconecuratedimages/apps:openjdk-15-alpine-scone3.0
 
 ENV SCONE_MODE auto
 WORKDIR /app
 
-#RUN wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub \
-#       && wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.30-r0/glibc-2.30-r0.apk \
-#       && apk add glibc-2.30-r0.apk
+RUN wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub \
+       && wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.30-r0/glibc-2.30-r0.apk \
+       && apk add glibc-2.30-r0.apk
 
 RUN echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories
 
@@ -14,7 +19,7 @@ RUN apk add protobuf@testing
 COPY ["build.gradle", "gradlew", "./"]
 COPY gradle gradle
 RUN chmod +x gradlew
-RUN ./gradlew downloadRepos
+RUN ./gradlew --stacktrace downloadRepos
 
 COPY . .
 RUN chmod +x gradlew
