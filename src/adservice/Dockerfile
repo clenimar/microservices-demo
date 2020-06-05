@@ -19,7 +19,7 @@ WORKDIR /app
 COPY ["build.gradle", "gradlew", "./"]
 COPY gradle gradle
 RUN chmod +x gradlew
-RUN ./gradlew downloadRepos
+RUN ./gradlew --stacktrace downloadRepos
 
 COPY . .
 RUN chmod +x gradlew
