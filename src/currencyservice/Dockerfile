@@ -1,4 +1,4 @@
-FROM sconecuratedimages/node:8.9.4 as base
+FROM sconecuratedimages/apps:node-8.9.4-alpine as base
 #FROM node:8-alpine as base
 
 FROM node:8-alpine as builder
