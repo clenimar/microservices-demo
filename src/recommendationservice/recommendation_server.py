@@ -21,7 +21,7 @@ import traceback
 from concurrent import futures
 
 import googleclouddebugger
-import googlecloudprofiler
+#import googlecloudprofiler
 from google.auth.exceptions import DefaultCredentialsError
 import grpc
 from opencensus.trace.exporters import print_exporter

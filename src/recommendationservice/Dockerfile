@@ -36,4 +36,8 @@ COPY . .
 ENV PORT "8080"
 EXPOSE 8080
 
+# google-cloud-profiler dependency fails to build.
+# disable profiling for now...
+ENV DISABLE_PROFILER 1
+
 ENTRYPOINT ["python", "/recommendationservice/recommendation_server.py"]
