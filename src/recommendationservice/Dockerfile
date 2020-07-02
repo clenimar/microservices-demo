@@ -1,14 +1,19 @@
+# google-cloud-debug dependency has no released
+# package for alpine, so we need to built it from
+# source and copy to the final image.
 FROM alpine:3.7 as cdbg
 
 ENV PYTHON=python2
+# from requirements.txt
+ENV CDBG_VERSION 2.9
 
 RUN apk update
-RUN apk add bash git curl gcc g++ make cmake ${PYTHON}-dev py-setuptools
+RUN apk add bash git curl gcc g++ make cmake ${PYTHON}-dev "py-setuptools<45"
 
-RUN git clone https://github.com/GoogleCloudPlatform/cloud-debug-python
+RUN git clone -b $CDBG_VERSION  https://github.com/GoogleCloudPlatform/cloud-debug-python
 RUN PYTHON=$PYTHON bash cloud-debug-python/src/build.sh
 
-FROM sconecuratedimages/apps:pypy-2.7.15-alpine3.7
+FROM sconecuratedimages/apps:pypy2-alpine
 
 ENV SCONE_ALLOW_DLOPEN 2
 ENV SCONE_MODE auto
@@ -19,8 +24,7 @@ RUN apk --update add --no-cache \
       wget \
       g++ \
       libexecinfo-dev \
-      libstdc++ \
-      py-setuptools
+      libstdc++
 
 # show python logs as they occur
 ENV PYTHONUNBUFFERED=0
@@ -33,15 +37,16 @@ RUN GRPC_HEALTH_PROBE_VERSION=v0.3.5 && \
 # get packages
 WORKDIR /recommendationservice
 COPY requirements.txt requirements.txt
+# newer setuptools versions (>=47.0.0) do not
+# support Python 2 anymore.
+# pin the version that still works.
+RUN pip install "setuptools<=45.0.0"
 RUN pip install --upgrade pip
 RUN pip install wheel
 RUN pip install -r requirements.txt
 
-# install google-cloud-debugger from "cdbg".
-ENV PYTHON=python2
-
 COPY --from=cdbg /cloud-debug-python/src/dist/*.egg .
-RUN $PYTHON -m easy_install *.egg
+RUN python -m easy_install *.egg
 RUN rm *.egg
 
 # add files into working directory
@@ -50,5 +55,9 @@ COPY . .
 # set listen port
 ENV PORT "8080"
 EXPOSE 8080
+
+# google-cloud-profiler dependency fails to build.
+# disable profiling for now...
+ENV DISABLE_PROFILER 1
 
 ENTRYPOINT ["python", "/recommendationservice/recommendation_server.py"]
