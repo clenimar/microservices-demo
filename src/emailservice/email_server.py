@@ -36,7 +36,7 @@ from opencensus.common.transports.async_ import AsyncTransport
 from opencensus.trace.samplers import always_on
 
 # import googleclouddebugger
-import googlecloudprofiler
+#import googlecloudprofiler
 
 from logger import getJSONLogger
 logger = getJSONLogger('emailservice-server')
