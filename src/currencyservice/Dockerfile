@@ -1,7 +1,8 @@
-FROM sconecuratedimages/apps:node-8.9.4-alpine as base
-#FROM node:8-alpine as base
+FROM sconecuratedimages/experimental:node8.9.4 as base
 
-FROM node:8-alpine as builder
+# bump Node to v10 to match node_modules version
+# of sconecuratedimages/experimental:node8.9.4, which is v64.
+FROM node:10-alpine as builder
 
 # Some packages (e.g. @google-cloud/profiler) require additional
 # deps for post-install scripts
