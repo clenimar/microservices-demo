@@ -12,7 +12,8 @@ RUN dotnet restore && \
 
 
 # cartservice
-FROM sconecuratedimages/mono
+#FROM sconecuratedimages/mono
+FROM sconecuratedimages/experimental:mono-5-alpine
 
 RUN GRPC_HEALTH_PROBE_VERSION=v0.3.5 && \
     wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
