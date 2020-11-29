@@ -1,4 +1,4 @@
-FROM sconecuratedimages/experimental:node-8-alpine as base
+FROM sconecuratedimages/apps:node-8-alpine-scone5.0.0 as base
 
 FROM node:8-alpine as builder
 
