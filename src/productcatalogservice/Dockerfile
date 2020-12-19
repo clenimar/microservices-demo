@@ -1,10 +1,16 @@
-FROM sconecuratedimages/crosscompilers:alpine3.7
+FROM golang:1.15-alpine AS builder
 
-RUN apk add --no-cache --update ca-certificates git go
+FROM sconecuratedimages/crosscompilers:alpine3.7-scone5.0.0
 
-ENV GOPATH /root/go
-RUN mkdir -p $GOPATH/bin
-ENV PATH $PATH:$GOPATH/bin
+RUN apk add --no-cache --update ca-certificates git
+
+COPY --from=builder /usr/local/go/ /usr/local/go/
+ENV GOPATH /go
+ENV GOROOT /usr/local/go
+RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && \
+    chmod -R 777 "$GOPATH"
+
+ENV PATH $PATH:$GOPATH/bin:$GOROOT/bin
 
 RUN wget -qO $GOPATH/bin/dep https://github.com/golang/dep/releases/download/v0.5.0/dep-linux-amd64 && \
       chmod +x $GOPATH/bin/dep

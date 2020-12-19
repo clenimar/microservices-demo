@@ -1,22 +1,23 @@
-FROM sconecuratedimages/crosscompilers:alpine3.7
+FROM golang:1.15-alpine AS builder
 
-RUN apk add --no-cache --update ca-certificates git go
+FROM sconecuratedimages/crosscompilers:alpine3.7-scone5.0.0
 
-ENV GOPATH /root/go
-RUN mkdir -p $GOPATH/bin
-ENV PATH $PATH:$GOPATH/bin
+COPY --from=builder /usr/local/go/ /usr/local/go/
 
-RUN wget -qO$GOPATH/bin/dep https://github.com/golang/dep/releases/download/v0.5.0/dep-linux-amd64 && \
-      chmod +x $GOPATH/bin/dep
+RUN apk add --no-cache --update ca-certificates git
 
-ENV PROJECT github.com/GoogleCloudPlatform/microservices-demo/src/shippingservice
+ENV GOPATH /go
+ENV GOROOT /usr/local/go
+RUN mkdir -p "$GOPATH/bin" "$GOPATH/src" && \
+    chmod -R 777 "$GOPATH"                  # FIXME: change permission
 
-WORKDIR $GOPATH/src/$PROJECT
+ENV PATH $PATH:$GOPATH/bin:$GOROOT/bin
+
+WORKDIR /src
 
 # restore dependencies
-COPY Gopkg.* ./
-RUN dep ensure --vendor-only -v
-
+COPY go.mod go.sum ./
+RUN go mod download
 COPY . .
 RUN go build -compiler gccgo -buildmode=exe -gccgoflags -g -o /shippingservice .
 

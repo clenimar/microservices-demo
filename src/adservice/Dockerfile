@@ -27,7 +27,7 @@ RUN ./gradlew installDist
 
 #FROM openjdk:8-slim
 
-FROM sconecuratedimages/apps:openjdk-15-alpine-scone3.0
+FROM sconecuratedimages/apps:openjdk-16-alpine-scone5.0.0
 
 # Download Stackdriver Profiler Java agent
 #RUN apt-get -y update && apt-get install -qqy \

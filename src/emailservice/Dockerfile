@@ -1,6 +1,6 @@
 #FROM python:3.7-slim as base
 #FROM sconecuratedimages/apps:python-3.7-alpine as base
-FROM sconecuratedimages/experimental:python-3.7.3-alpine3.10 as base
+FROM sconecuratedimages/apps:python-3.7.3-alpine3.10-scone5.0.0 as base
 
 #RUN apt-get -qq update \
 #    && apt-get install -y --no-install-recommends \
