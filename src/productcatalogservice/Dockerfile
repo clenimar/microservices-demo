@@ -34,5 +34,5 @@ RUN GRPC_HEALTH_PROBE_VERSION=v0.2.0 && \
 WORKDIR /productcatalogservice
 COPY products.json .
 EXPOSE 3550
-ENV SCONE_HEAP 1G
+ENV SCONE_HEAP 2G
 ENTRYPOINT ["/productcatalogservice/server"]

@@ -1,4 +1,4 @@
-FROM sconecuratedimages/node:node-12-alpine-scone5.1.0 as base
+FROM sconecuratedimages/node:node-12-alpine-scone5.0.0 as base
 
 FROM node:12-alpine as builder
 
@@ -26,6 +26,8 @@ WORKDIR /usr/src/app
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 
 COPY . .
+
+ENV SCONE_HEAP 2G
 
 EXPOSE 50051
 

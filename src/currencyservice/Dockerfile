@@ -27,6 +27,8 @@ COPY --from=builder /usr/src/app/node_modules ./node_modules
 
 COPY . .
 
+ENV SCONE_HEAP 2G
+
 EXPOSE 7000
 
 ENTRYPOINT [ "node", "server.js" ]
