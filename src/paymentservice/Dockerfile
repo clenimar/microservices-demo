@@ -29,6 +29,8 @@ COPY . .
 
 ENV SCONE_HEAP 2G
 
+ENV SCONE_FORK 0
+
 EXPOSE 50051
 
 ENTRYPOINT [ "node", "index.js" ]
