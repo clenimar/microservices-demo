@@ -1,6 +1,6 @@
 FROM golang:1.15-alpine AS builder
 
-FROM sconecuratedimages/crosscompilers:alpine3.7-scone5.0.0
+FROM registry.scontain.com:5050/sconecuratedimages/crosscompilers:alpine3.7-scone5.0.0
 
 RUN apk add --no-cache --update ca-certificates git
 

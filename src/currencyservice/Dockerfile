@@ -1,6 +1,6 @@
-FROM sconecuratedimages/apps:node-8-alpine-scone5.0.0 as base
+FROM registry.scontain.com:5050/sconecuratedimages/node:12-alpine-scone5.0.0 as base
 
-FROM node:8-alpine as builder
+FROM node:12-alpine as builder
 
 # Some packages (e.g. @google-cloud/profiler) require additional
 # deps for post-install scripts

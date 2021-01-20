@@ -1,9 +1,4 @@
-# original base image:
-#FROM openjdk:8-slim as builder
-
 FROM openjdk:15-alpine as builder
-
-#FROM sconecuratedimages/apps:openjdk-15-alpine-scone3.0
 
 ENV SCONE_MODE auto
 WORKDIR /app
@@ -25,9 +20,7 @@ COPY . .
 RUN chmod +x gradlew
 RUN ./gradlew installDist
 
-#FROM openjdk:8-slim
-
-FROM sconecuratedimages/apps:openjdk-16-alpine-scone5.0.0
+FROM registry.scontain.com:5050/sconecuratedimages/apps:openjdk-16-alpine-scone5.0.0
 
 # Download Stackdriver Profiler Java agent
 #RUN apt-get -y update && apt-get install -qqy \

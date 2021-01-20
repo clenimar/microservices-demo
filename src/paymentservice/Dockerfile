@@ -1,4 +1,4 @@
-FROM sconecuratedimages/node:node-12-alpine-scone5.0.0 as base
+FROM registry.scontain.com:5050/sconecuratedimages/node:node-12-alpine-scone5.0.0 as base
 
 FROM node:12-alpine as builder
 

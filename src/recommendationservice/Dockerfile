@@ -13,7 +13,7 @@ RUN apk add bash git curl gcc g++ make cmake ${PYTHON}-dev "py-setuptools<45"
 RUN git clone -b $CDBG_VERSION  https://github.com/GoogleCloudPlatform/cloud-debug-python
 RUN PYTHON=$PYTHON bash cloud-debug-python/src/build.sh
 
-FROM sconecuratedimages/apps:pypy2-alpine-scone5.0.0
+FROM registry.scontain.com:5050/sconecuratedimages/apps:pypy2-alpine-scone5.0.0
 
 ENV SCONE_ALLOW_DLOPEN 2
 ENV SCONE_MODE auto
