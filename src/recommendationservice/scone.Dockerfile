@@ -1,63 +1,74 @@
-# google-cloud-debug dependency has no released
-# package for alpine, so we need to built it from
-# source and copy to the final image.
-FROM alpine:3.7 as cdbg
+# NOTE: Instrumentation is disabled because the respective
+# dependencies are not fully compatible with Alpine:
+# google-cloud-profiler
+# google-python-cloud-debugger
 
-ENV PYTHON=python2
-# from requirements.txt
-ENV CDBG_VERSION 2.9
+ARG SCONE_VERSION=5.2.1
 
-RUN apk update
-RUN apk add bash git curl gcc g++ make cmake ${PYTHON}-dev "py-setuptools<45"
-
-RUN git clone -b $CDBG_VERSION  https://github.com/GoogleCloudPlatform/cloud-debug-python
-RUN PYTHON=$PYTHON bash cloud-debug-python/src/build.sh
-
-FROM registry.scontain.com:5050/sconecuratedimages/apps:pypy2-alpine-scone5.0.0
-
-ENV SCONE_ALLOW_DLOPEN 2
-ENV SCONE_MODE auto
-ENV SCONE_LOG 7
-ENV SCONE_HEAP=512M
+FROM registry.scontain.com:5050/sconecuratedimages/apps:python-3.7.3-alpine3.10-scone${SCONE_VERSION} AS binary-fs
 
 RUN apk --update add --no-cache \
       wget \
       g++ \
       libexecinfo-dev \
-      libstdc++
+      libstdc++ \
+      linux-headers
+
+WORKDIR /recommendationservice
+
+COPY requirements.txt requirements.txt
+
+RUN pip3 install -r requirements.txt
+
+COPY . .
+
+RUN SCONE_MODE=auto scone binaryfs / /binary-fs.c -v \
+        --include '/usr/lib/python3.7/*' \
+        --include /recommendationservice/demo_pb2.py \
+        --include /recommendationservice/demo_pb2_grpc.py \
+        --include /recommendationservice/client.py \
+        --include /recommendationservice/recommendation_server.py \
+        --include /recommendationservice/logger.py \
+        --include '/usr/bin/libpypy-c.so' \
+        --include '/usr/lib/libstdc++.so.6*' \
+        --include '/usr/lib/libgcc_s.so.1*' \
+        --include '/lib/libz.so.1*' \
+        --include '/usr/lib/libbz2.so.1*' \
+        --include '/usr/lib/libffi.so.6*' \
+        --include '/usr/lib/libexpat.so.1*' \
+        --include '/lib/libssl.so.4*' \
+        --include '/lib/libcrypto.so.4*' \
+        --include '/usr/lib/libncursesw.so.6*'
+
+FROM registry.scontain.com:5050/sconecuratedimages/crosscompilers:alpine3.7-scone${SCONE_VERSION} AS crosscompiler
+
+COPY --from=binary-fs /binary-fs.c /.
+
+RUN scone gcc /binary-fs.c -O0 -shared -o /libbinary-fs.so
+
+FROM registry.scontain.com:5050/sconecuratedimages/apps:python-3.7.3-alpine3.10-scone${SCONE_VERSION}
+
+COPY --from=crosscompiler /libbinary-fs.so /.
+
+RUN apk add --no-cache patchelf && \
+    patchelf --add-needed libbinary-fs.so `which python3` && \
+    apk del patchelf
+
+# Disable instrumentation because dependencies
+# are not compatible with Alpine.
+# google-cloud-profiler and google-python-cloud-debugger
+ENV DISABLE_PROFILER 1
+ENV DISABLE_DEBUGGER 1
 
 # show python logs as they occur
 ENV PYTHONUNBUFFERED=0
 
-# download the grpc health probe
-RUN GRPC_HEALTH_PROBE_VERSION=v0.3.5 && \
-    wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
-    chmod +x /bin/grpc_health_probe
-
-# get packages
-WORKDIR /recommendationservice
-COPY requirements.txt requirements.txt
-# newer setuptools versions (>=47.0.0) do not
-# support Python 2 anymore.
-# pin the version that still works.
-RUN pip install "setuptools<=45.0.0"
-RUN pip install --upgrade pip
-RUN pip install wheel
-RUN pip install -r requirements.txt
-
-COPY --from=cdbg /cloud-debug-python/src/dist/*.egg .
-RUN python -m easy_install *.egg
-RUN rm *.egg
-
-# add files into working directory
-COPY . .
+ENV SCONE_ALLOW_DLOPEN 2
+ENV SCONE_HEAP=512M
+ENV LD_LIBRARY_PATH /
 
 # set listen port
 ENV PORT "8080"
 EXPOSE 8080
-
-# google-cloud-profiler dependency fails to build.
-# disable profiling for now...
-ENV DISABLE_PROFILER 1
 
 ENTRYPOINT ["python", "/recommendationservice/recommendation_server.py"]
