@@ -1,40 +1,35 @@
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 FROM golang:1.15-alpine AS builder
-
-FROM registry.scontain.com:5050/sconecuratedimages/crosscompilers:alpine3.7-scone5.0.0
-
-RUN apk add --no-cache --update ca-certificates git
-
-COPY --from=builder /usr/local/go/ /usr/local/go/
-ENV GOPATH /go
-ENV GOROOT /usr/local/go
-RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && \
-    chmod -R 777 "$GOPATH"
-
-ENV PATH $PATH:$GOPATH/bin:$GOROOT/bin
-
-RUN wget -qO $GOPATH/bin/dep https://github.com/golang/dep/releases/download/v0.5.0/dep-linux-amd64 && \
-      chmod +x $GOPATH/bin/dep
-
-ENV PROJECT github.com/GoogleCloudPlatform/microservices-demo/src/productcatalogservice
-
-WORKDIR $GOPATH/src/$PROJECT
+RUN apk add --no-cache ca-certificates git
 
 WORKDIR /src
 # restore dependencies
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN mkdir -p /productcatalogservice
-RUN go build -compiler gccgo -buildmode=exe -gccgoflags -g -o /productcatalogservice/server .
+RUN go build -o /productcatalogservice .
 
 FROM alpine AS release
 RUN apk add --no-cache ca-certificates
 RUN GRPC_HEALTH_PROBE_VERSION=v0.3.6 && \
     wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
     chmod +x /bin/grpc_health_probe
-
 WORKDIR /productcatalogservice
+COPY --from=builder /productcatalogservice ./server
 COPY products.json .
 EXPOSE 3550
-ENV SCONE_HEAP 2G
 ENTRYPOINT ["/productcatalogservice/server"]
+

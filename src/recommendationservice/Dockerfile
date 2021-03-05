@@ -1,31 +1,21 @@
-# google-cloud-debug dependency has no released
-# package for alpine, so we need to built it from
-# source and copy to the final image.
-FROM alpine:3.7 as cdbg
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-ENV PYTHON=python2
-# from requirements.txt
-ENV CDBG_VERSION 2.9
-
-RUN apk update
-RUN apk add bash git curl gcc g++ make cmake ${PYTHON}-dev "py-setuptools<45"
-
-RUN git clone -b $CDBG_VERSION  https://github.com/GoogleCloudPlatform/cloud-debug-python
-RUN PYTHON=$PYTHON bash cloud-debug-python/src/build.sh
-
-FROM registry.scontain.com:5050/sconecuratedimages/apps:pypy2-alpine-scone5.0.0
-
-ENV SCONE_ALLOW_DLOPEN 2
-ENV SCONE_MODE auto
-ENV SCONE_LOG 7
-ENV SCONE_HEAP=512M
-
-RUN apk --update add --no-cache \
-      wget \
-      g++ \
-      libexecinfo-dev \
-      libstdc++
-
+FROM python:3.7-slim
+RUN apt-get update -qqy && \
+	apt-get -qqy install wget g++ && \
+	rm -rf /var/lib/apt/lists/*
 # show python logs as they occur
 ENV PYTHONUNBUFFERED=0
 
@@ -37,17 +27,7 @@ RUN GRPC_HEALTH_PROBE_VERSION=v0.3.6 && \
 # get packages
 WORKDIR /recommendationservice
 COPY requirements.txt requirements.txt
-# newer setuptools versions (>=47.0.0) do not
-# support Python 2 anymore.
-# pin the version that still works.
-RUN pip install "setuptools<=45.0.0"
-RUN pip install --upgrade pip
-RUN pip install wheel
 RUN pip install -r requirements.txt
-
-COPY --from=cdbg /cloud-debug-python/src/dist/*.egg .
-RUN python -m easy_install *.egg
-RUN rm *.egg
 
 # add files into working directory
 COPY . .
@@ -55,9 +35,5 @@ COPY . .
 # set listen port
 ENV PORT "8080"
 EXPOSE 8080
-
-# google-cloud-profiler dependency fails to build.
-# disable profiling for now...
-ENV DISABLE_PROFILER 1
 
 ENTRYPOINT ["python", "/recommendationservice/recommendation_server.py"]

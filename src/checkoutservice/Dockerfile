@@ -1,19 +1,19 @@
-FROM golang:1.15-alpine AS builder
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-FROM registry.scontain.com:5050/sconecuratedimages/crosscompilers:alpine3.7-scone5.0.0
-
-COPY --from=builder /usr/local/go/ /usr/local/go/
-
-RUN apk add --no-cache --update ca-certificates git
-
-ENV GOPATH /go
-ENV GOROOT /usr/local/go
-
-RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && \
-    chmod -R 777 "$GOPATH"                  # FIXME: change permission
-
-ENV PATH $GOPATH/bin:$GOROOT/bin:$PATH
-
+FROM golang:1.15-alpine as builder
+RUN apk add --no-cache ca-certificates git
 WORKDIR /src
 
 # restore dependencies
@@ -21,14 +21,13 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN go build -compiler gccgo -buildmode=exe -gccgoflags -g -o /checkoutservice .
+RUN go build -gcflags='-N -l' -o /checkoutservice .
 
 FROM alpine as release
 RUN apk add --no-cache ca-certificates
 RUN GRPC_HEALTH_PROBE_VERSION=v0.3.6 && \
     wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
     chmod +x /bin/grpc_health_probe
-
+COPY --from=builder /checkoutservice /checkoutservice
 EXPOSE 5050
-ENV SCONE_HEAP 2G
 ENTRYPOINT ["/checkoutservice"]
