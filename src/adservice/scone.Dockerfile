@@ -22,8 +22,6 @@ RUN ./gradlew installDist
 
 FROM registry.scontain.com:5050/sconecuratedimages/apps:openjdk-16-alpine-scone5.0.0
 
-FROM sconecuratedimages/apps:openjdk-15-alpine-scone3.0
-
 # Download Stackdriver Profiler Java agent
 #RUN apt-get -y update && apt-get install -qqy \
 #    wget \
@@ -44,7 +42,7 @@ RUN apk add protobuf@testing
 #    | tar xzv -C /opt/cprof && \
 #    rm -rf profiler_java_agent.tar.gz
 
-RUN GRPC_HEALTH_PROBE_VERSION=v0.3.6 && \
+RUN GRPC_HEALTH_PROBE_VERSION=v0.3.5 && \
     wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
     chmod +x /bin/grpc_health_probe
 

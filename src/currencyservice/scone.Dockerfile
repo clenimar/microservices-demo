@@ -1,4 +1,4 @@
-FROM registry.scontain.com:5050/sconecuratedimages/node:node-12-alpine-scone5.0.0 as base
+FROM registry.scontain.com:5050/sconecuratedimages/node:12-alpine-scone5.0.0 as base
 
 FROM node:12-alpine as builder
 
@@ -17,7 +17,7 @@ RUN npm install --only=production
 
 FROM base
 
-RUN GRPC_HEALTH_PROBE_VERSION=v0.3.6 && \
+RUN GRPC_HEALTH_PROBE_VERSION=v0.3.5 && \
     wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
     chmod +x /bin/grpc_health_probe
 
@@ -29,8 +29,6 @@ COPY . .
 
 ENV SCONE_HEAP 2G
 
-ENV SCONE_FORK 0
+EXPOSE 7000
 
-EXPOSE 50051
-
-ENTRYPOINT [ "node", "index.js" ]
+ENTRYPOINT [ "node", "server.js" ]

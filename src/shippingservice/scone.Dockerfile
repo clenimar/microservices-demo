@@ -8,27 +8,25 @@ RUN apk add --no-cache --update ca-certificates git
 
 ENV GOPATH /go
 ENV GOROOT /usr/local/go
-
-RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && \
+RUN mkdir -p "$GOPATH/bin" "$GOPATH/src" && \
     chmod -R 777 "$GOPATH"                  # FIXME: change permission
 
-ENV PATH $GOPATH/bin:$GOROOT/bin:$PATH
+ENV PATH $PATH:$GOPATH/bin:$GOROOT/bin
 
 WORKDIR /src
 
 # restore dependencies
 COPY go.mod go.sum ./
 RUN go mod download
-
 COPY . .
-RUN go build -compiler gccgo -buildmode=exe -gccgoflags -g -o /checkoutservice .
+RUN go build -compiler gccgo -buildmode=exe -gccgoflags -g -o /shippingservice .
 
-FROM alpine as release
-RUN apk add --no-cache ca-certificates
-RUN GRPC_HEALTH_PROBE_VERSION=v0.3.6 && \
+RUN GRPC_HEALTH_PROBE_VERSION=v0.2.0 && \
     wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
     chmod +x /bin/grpc_health_probe
 
-EXPOSE 5050
+ENV APP_PORT=50051
+EXPOSE 50051
 ENV SCONE_HEAP 2G
-ENTRYPOINT ["/checkoutservice"]
+ENTRYPOINT ["/shippingservice"]
+
