@@ -1,0 +1,129 @@
+version: "3.3"
+services:
+  adservice:
+    image: "gcr.io/google-samples/microservices-demo/adservice:v0.2.2"
+    environment:
+      PORT: 9555
+      DISABLE_TRACING: 1
+      DISABLE_STATS: 1
+      SCONE_ALLOW_DLOPEN: 2
+      SCONE_FORK: 1
+      JAVA_TOOL_OPTIONS: "-Xmx512M"
+      SCONE_HEAP: "4G"
+      SCONE_MODE: "auto"
+    ports:
+      - "9555:9555"
+  cartservice:
+    image: "gcr.io/google-samples/microservices-demo/cartservice:v0.2.2"
+    environment:
+      PORT: 7070
+      LISTEN_ADDR: "0.0.0.0"
+      DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: "1"
+      REDIS_ADDR: 172.17.0.1:6379
+      SCONE_ALLOW_DLOPEN: 2
+      SCONE_FORK: 1
+      SCONE_HEAP: "4G"
+    ports:
+      - "7070:7070"
+  checkoutservice:
+    image: "gcr.io/google-samples/microservices-demo/checkoutservice:v0.2.2"
+    environment:
+      PORT: 5050
+      PRODUCT_CATALOG_SERVICE_ADDR: 172.17.0.1:3550
+      SHIPPING_SERVICE_ADDR: 172.17.0.1:50053
+      PAYMENT_SERVICE_ADDR: 172.17.0.1:50052
+      EMAIL_SERVICE_ADDR: 172.17.0.1:5000
+      CURRENCY_SERVICE_ADDR: 172.17.0.1:7000
+      CART_SERVICE_ADDR: 172.17.0.1:7070
+    ports:
+      - "5050:5050"
+  currencyservice:
+    image: "gcr.io/google-samples/microservices-demo/currencyservice:v0.2.2"
+    environment:
+      PORT: 7000
+      DISABLE_TRACING: 1
+      DISABLE_DEBUGGER: 1
+      DISABLE_PROFILER: 1
+      SCONE_FORK: 1
+      SCONE_HEAP: "2G"
+    ports:
+      - "7000:7000"
+  emailservice:
+    image: "gcr.io/google-samples/microservices-demo/emailservice:v0.2.2"
+    environment:
+      PORT: 8080
+      DISABLE_TRACING: 1
+      DISABLE_PROFILER: 1
+      SCONE_ALLOW_DLOPEN: 2
+    ports:
+      - "5000:8080"
+  frontend:
+    image: "gcr.io/google-samples/microservices-demo/frontend:v0.2.2"
+    environment:
+      PRODUCT_CATALOG_SERVICE_ADDR: 172.17.0.1:3550
+      CURRENCY_SERVICE_ADDR: 172.17.0.1:7000
+      CART_SERVICE_ADDR: 172.17.0.1:7070
+      RECOMMENDATION_SERVICE_ADDR: 172.17.0.1:8081
+      SHIPPING_SERVICE_ADDR: 172.17.0.1:50053
+      CHECKOUT_SERVICE_ADDR: 172.17.0.1:5050
+      AD_SERVICE_ADDR: 172.17.0.1:9555
+      DISABLE_TRACING: 1
+      DISABLE_PROFILER: "1"
+      DISABLE_STATS: 1
+    ports:
+      - "8080:8080"
+  paymentservice:
+    image: "gcr.io/google-samples/microservices-demo/paymentservice:v0.2.2"
+    environment:
+      PORT: 50051
+      DISABLE_TRACING: 1
+      DISABLE_DEBUGGER: 1
+      DISABLE_PROFILER: 1
+      SCONE_HEAP: "2G"
+    ports:
+      - "50052:50051"
+  productcatalogservice:
+    image: "gcr.io/google-samples/microservices-demo/productcatalogservice:v0.2.2"
+    environment:
+      PORT: 3550
+      DISABLE_TRACING: 1
+      DISABLE_DEBUGGER: 1
+      DISABLE_PROFILER: 1
+    ports:
+      - "3550:3550"
+  recommendationservice:
+    image: "gcr.io/google-samples/microservices-demo/recommendationservice:v0.2.2"
+    command:
+      - /usr/local/bin/python3.7
+      - /recommendationservice/recommendation_server.py
+    environment:
+      PORT: 8080
+      PRODUCT_CATALOG_SERVICE_ADDR: 172.17.0.1:3550
+      DISABLE_TRACING: "1"
+      DISABLE_DEBUGGER: "1"
+      DISABLE_PROFILER: "1"
+      PYTHONUNBUFFERED: 0
+      SCONE_MODE: sim
+      SCONE_LOG: "7"
+      SCONE_VERSION: "1"
+    ports:
+      - "8081:8080"
+  shippingservice:
+    image: "gcr.io/google-samples/microservices-demo/shippingservice:v0.2.2"
+    environment:
+      PORT: 50051
+      DISABLE_TRACING: 1
+      DISABLE_STATS: 1
+      DISABLE_PROFILER: 1
+      SCONE_HEAP: "1G"
+    ports:
+      - "50053:50051"
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+  # loadgenerator:
+  #    image: "gcr.io/google-samples/microservices-demo/loadgenerator:v0.2.2"
+  #    environment:
+  #      FRONTEND_ADDR: 172.17.0.1:8080
+  #      USERS: 10
