@@ -42,7 +42,7 @@ var (
 	templates = template.Must(template.New("").
 			Funcs(template.FuncMap{
 			"renderMoney": renderMoney,
-		}).ParseGlob("templates/*.html"))
+		}).ParseGlob("/frontend/templates/*.html"))
 	plat platformDetails
 )
 
