@@ -44,7 +44,7 @@ var (
 			Funcs(template.FuncMap{
 			"renderMoney":        renderMoney,
 			"renderCurrencyLogo": renderCurrencyLogo,
-		}).ParseGlob("templates/*.html"))
+		}).ParseGlob("/frontend/templates/*.html"))
 	plat platformDetails
 )
 
