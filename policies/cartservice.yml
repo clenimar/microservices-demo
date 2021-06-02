@@ -1,0 +1,28 @@
+name: $CAS_NAMESPACE/cartservice
+version: "0.3"
+
+# Access control:
+#   - only the data owner (CREATOR) can read or update the session
+#   - even the data owner cannot read the session secrets (i.e., the volume key and tag) or delete the session
+access_policy:
+  read:
+   - CREATOR
+  update:
+   - CREATOR
+
+security:
+  attestation:
+    tolerate: [debug-mode, hyperthreading, outdated-tcb, software-hardening-needed]
+    ignore_advisories: "*"
+
+services:
+   - name: cartservice
+     command: ./cartservice start
+     mrenclaves: ["1d1394894c7893e7a4096c0b28d26ac5fb8506f8110dd46867dad841d34d1486"]
+     pwd: /cartservice
+     environment:
+       ASPNETCORE_URLS: "http://*:7070"
+       REDIS_ADDR: "redis-cart:6379"
+       LISTEN_ADDR: "0.0.0.0"
+       COMPlus_GCHeapHardLimit: "0x1000000"
+       DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: "1"

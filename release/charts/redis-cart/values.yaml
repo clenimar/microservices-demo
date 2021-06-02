@@ -1,0 +1,92 @@
+# Default values for redis-cart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image: registry.scontain.com:5050/sconecuratedimages/apps:redis-6-alpine-scone5.5.0
+imagePullPolicy: Always
+imagePullSecrets:
+  - name: sconeapps
+
+command: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+scone:
+  # SCONE CAS address (SCONE_CAS_ADDR environment variable ).
+  cas: 5-4-0.scone-cas.cf
+  # SCONE config ID (SCONE_CONFIG_ID environment variable).
+  configID: "online-boutique-2912320663/redis-cart/redis-cart"
+  # Dynamic loaded libraries protection (SCONE_ALLOW_DLOPEN environment varible).
+  allowDlOpen: ""
+  # Protected heap size (SCONE_HEAP environment variable).
+  heap: ""
+  # Protected stack size (SCONE_STACK environment variable).
+  stack: ""
+  # Allow SCONE to fork (SCONE_FORK environment variable).
+  fork: ""
+  # SCONE log level (SCONE_LOG environment variable).
+  # Possible values: ERROR (default), WARNING, INFO, DEBUG.
+  log: ERROR
+  # Print SCONE version (SCONE_VERSION environment variable).
+  printVersion: false
+
+# Configure access to the Intel SGX driver.
+# Possible options:
+#   'scone', 'enabled': Use SCONE SGX device plugin [1]. Default option.
+#                       [1] https://sconedocs.github.io/helm_sgxdevplugin/
+#   'azure':            Use Azure SGX device plugin.
+#   'disabled':         Do not use device plugins and mount the driver (/dev/isgx)
+#                       as a hostPath volume in Kubernetes. The container will run
+#                       in privileged mode to have access to the host's /dev.
+useSGXDevPlugin: scone
+
+# If running on Azure, specify the amount of EPC memory requested, in MiB.
+# Only takes effect if 'useSGXDevPlugin' is set to 'azure' (required).
+sgxEpcMem: 4
+
+service:
+  enabled: true
+  type: ClusterIP
+  loadBalancerIP: ""
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+# service:
+#   type: ClusterIP
+#   containerPort: 8080
+#   port: 80
+
+extraEnvVars: {}
+  # - name: EXTRA_VAR
+  #   value: "extra"
+
+# We usually recommend not to specify default resources and to leave this as a conscious
+# choice for the user. This also increases chances charts run on environments with little
+# resources, such as Minikube.
+resources:
+  requests: {}
+  # If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources.requests:'.
+  #   cpu: 100m
+  #   memory: 128Mi
+
+  limits: {}
+  # If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources.limits:'.
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
